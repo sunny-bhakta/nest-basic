@@ -30,6 +30,16 @@ export class BearerTokenGuard implements CanActivate {
         try {
             const user = await this.securityService.validateToken(token);
             request.user = user;
+            
+            // Update request context with user info if available
+            if (request.context) {
+                request.context.user = {
+                    id: user.id,
+                    username: user.username,
+                    accessLevel: user.accessLevel,
+                };
+            }
+            
             return true;
         } catch (error) {
             throw new UnauthorizedException("Invalid or expired token b");

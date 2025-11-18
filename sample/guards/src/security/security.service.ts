@@ -1,5 +1,9 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { AccessLevel } from "../enums/access-level.enum";
+import { 
+    TokenExpiredException, 
+    InvalidCredentialsException,
+} from "../filters/custom-exception.filter";
 
 
 @Injectable()
@@ -25,7 +29,7 @@ export class SecurityService {
         const user = this.validTokens.get(token);
 
         if (!user) {
-            throw new Error('Invalid token 123');
+           throw new InvalidCredentialsException('Invalid token provided');
         }
 
         const tokenAge = Date.now() - user.tokenIssuedAt.getTime();
@@ -33,7 +37,7 @@ export class SecurityService {
 
         if (tokenAge > maxTokenAge) {
             this.validTokens.delete(token);
-            throw new UnauthorizedException('Token expired');
+            throw new TokenExpiredException('Your session has expired');
         }
 
         return user;
