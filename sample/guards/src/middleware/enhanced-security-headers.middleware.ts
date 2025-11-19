@@ -1,18 +1,31 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { getCurrentConfig, getAllowedOrigin, isOriginAllowed } from '../config/cors.config';
+import { getCurrentConfig } from '../config/cors.config';
+import { corsManager } from '../config/cors.manager';
 
+/**
+ * Alternative security headers middleware using CorsManager
+ * This version provides more flexibility with environment variable overrides
+ */
 @Injectable()
-export class SecurityHeadersMiddleware implements NestMiddleware {
+export class EnhancedSecurityHeadersMiddleware implements NestMiddleware {
+  constructor() {
+    // Log CORS configuration on startup
+    corsManager.logConfiguration();
+  }
+
   use(req: Request, res: Response, next: NextFunction): void {
-    // Get configuration from cors.config.ts
     const config = getCurrentConfig();
     const requestOrigin = req.headers.origin;
 
-    // CORS Headers using configuration
-    if (isOriginAllowed(requestOrigin)) {
-      res.header('Access-Control-Allow-Origin', getAllowedOrigin(requestOrigin));
-      res.header('Access-Control-Allow-Credentials', config.cors.credentials.toString());
+    // CORS Headers using CorsManager
+    const allowedOrigin = corsManager.getAllowedOrigin(requestOrigin);
+    if (allowedOrigin) {
+      res.header('Access-Control-Allow-Origin', allowedOrigin);
+      
+      if (corsManager.shouldAllowCredentials()) {
+        res.header('Access-Control-Allow-Credentials', 'true');
+      }
     }
 
     // Set allowed methods and headers from config
@@ -32,8 +45,8 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
-      res.header('Access-Control-Max-Age', config.cors.maxAge?.toString() || '86400');
-      res.status(config.cors.optionsSuccessStatus || 200).end();
+      res.header('Access-Control-Max-Age', corsManager.getMaxAge().toString());
+      res.status(204).end();
       return;
     }
 
