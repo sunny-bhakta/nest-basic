@@ -54,6 +54,7 @@ describe('InterceptorsModule', () => {
       expect(securityInterceptor).toBeInstanceOf(SecurityInterceptor);
       expect(corsInterceptor).toBeInstanceOf(CorsInterceptor);
       expect(performanceInterceptor).toBeInstanceOf(PerformanceInterceptor);
+      
     });
 
     it('should export all interceptors', () => {

@@ -4,7 +4,11 @@ import { SecureEndpoint } from '../security/decorators/secure.decorator';
 import { SkipAuth } from '../security/decorators/skip-auth.decorator';
 import { AccessLevel } from '../enums/access-level.enum';
 import { CatalogService } from './catalog.service';
-import { CacheInterceptor, PerformanceInterceptor, LoggingInterceptor } from './interceptors';
+import { CacheInterceptor, PerformanceInterceptor, LoggingInterceptor } from '../interceptors/';
+// import { CacheInterceptor } from '../interceptors/cache.interceptor';
+// import { PerformanceInterceptor } from '../interceptors/logging.interceptor';
+// import { LoggingInterceptor } from '../interceptors/logging.interceptor';
+
 import { 
   ValidationPipe,
   ParseIntPipe,

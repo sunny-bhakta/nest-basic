@@ -23,15 +23,41 @@ import { PerformanceInterceptor } from './performance.interceptor';
 @Global()
 @Module({
   providers: [
-    // Individual interceptor instances
+    // Individual interceptor instances (for injection in services)
     LoggingInterceptor,
     ResponseTransformInterceptor,
-    CacheInterceptor,
-    TimeoutInterceptor,
-    RateLimitInterceptor,
     SecurityInterceptor,
     CorsInterceptor,
     PerformanceInterceptor,
+    // Factory providers for interceptors with configuration
+    {
+      provide: CacheInterceptor,
+      useFactory: () => new CacheInterceptor({
+        ttl: 300, // 5 minutes default TTL
+        keyGenerator: (req) => `${req.method}-${req.url}`,
+        excludeRoutes: ['/auth/', '/admin/'],
+      }),
+    },
+    {
+      provide: TimeoutInterceptor,
+      useFactory: () => new TimeoutInterceptor({
+        timeout: 30000, // 30 seconds default timeout
+        routeTimeouts: {
+          '/upload/': 300000, // 5 minutes for uploads
+          '/report/': 120000, // 2 minutes for reports
+          '/search': 10000, // 10 seconds for search
+        },
+      }),
+    },
+    {
+      provide: RateLimitInterceptor,
+      useFactory: () => new RateLimitInterceptor({
+        windowMs: 60000, // 1 minute
+        maxRequests: 100,
+        skipSuccessfulRequests: false,
+        keyGenerator: (req) => req.ip || 'unknown',
+      }),
+    },
     
     // Global interceptors (order matters!)
     {
@@ -95,31 +121,15 @@ import { PerformanceInterceptor } from './performance.interceptor';
     },
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new RateLimitInterceptor({
-        windowMs: 60000, // 1 minute
-        maxRequests: 100,
-        skipSuccessfulRequests: false,
-        keyGenerator: (req) => req.ip || 'unknown',
-      }),
+      useExisting: RateLimitInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new TimeoutInterceptor({
-        timeout: 30000, // 30 seconds default timeout
-        routeTimeouts: {
-          '/upload/': 300000, // 5 minutes for uploads
-          '/report/': 120000, // 2 minutes for reports
-          '/search': 10000, // 10 seconds for search
-        },
-      }),
+      useExisting: TimeoutInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new CacheInterceptor({
-        ttl: 300, // 5 minutes default TTL
-        keyGenerator: (req) => `${req.method}-${req.url}`,
-        excludeRoutes: ['/auth/', '/admin/'],
-      }),
+      useExisting: CacheInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,
