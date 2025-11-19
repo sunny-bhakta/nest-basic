@@ -63,6 +63,7 @@ This repository demonstrates comprehensive NestJS concepts including Guards, Mid
   - Logging interceptors
   - Performance monitoring
   - Cache management
+  - [Interceptor InjectionGuide](./src/interceptors/interceptor-injection-guide.md)
 
 #### ⚡ **Events System**
 - **[Event-Driven Architecture](./src/events/README.md)** - Asynchronous event handling
