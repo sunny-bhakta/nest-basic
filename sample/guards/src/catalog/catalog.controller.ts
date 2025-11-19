@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, Headers, Query, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Headers, Query, UsePipes, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiQuery, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SecureEndpoint } from '../security/decorators/secure.decorator';
 import { SkipAuth } from '../security/decorators/skip-auth.decorator';
 import { AccessLevel } from '../enums/access-level.enum';
 import { CatalogService } from './catalog.service';
+import { CacheInterceptor, PerformanceInterceptor, LoggingInterceptor } from './interceptors';
 import { 
   ValidationPipe,
   ParseIntPipe,
@@ -53,9 +54,10 @@ export class CatalogController {
 
   @Get('search')
   @SkipAuth()
+  @UseInterceptors(CacheInterceptor, PerformanceInterceptor) // Cache search results and monitor performance
   @ApiOperation({ 
     summary: 'Search catalog items with pagination and filtering',
-    description: 'Demonstrates multiple pipes: SearchValidationPipe, PaginationPipe, SecuritySanitizationPipe'
+    description: 'Demonstrates multiple pipes: SearchValidationPipe, PaginationPipe, SecuritySanitizationPipe. Uses CacheInterceptor for performance.'
   })
   @ApiQuery({ name: 'q', required: false, description: 'Search term', example: 'laptop' })
   @ApiQuery({ name: 'category', required: false, description: 'Category filter', example: 'electronics' })
@@ -154,9 +156,10 @@ export class CatalogController {
 
   @Get('admin/users')
   @SecureEndpoint(AccessLevel.ADMIN)
+  @UseInterceptors(LoggingInterceptor, PerformanceInterceptor) // Enhanced logging and performance monitoring for admin operations
   @ApiOperation({ 
     summary: 'Advanced user search with complex filtering',
-    description: 'Demonstrates SearchValidationPipe and AccessLevelValidationPipe'
+    description: 'Demonstrates SearchValidationPipe and AccessLevelValidationPipe. Enhanced logging for admin operations.'
   })
   @ApiQuery({ name: 'search', required: false, description: 'Search parameters as JSON or query string' })
   @ApiQuery({ name: 'accessLevel', required: false, enum: AccessLevel, description: 'Filter by access level' })
@@ -205,7 +208,7 @@ export class CatalogController {
     // Additional UUID validation for each ID
     const validatedIds = userIds.map(id => 
       new ParseUUIDPipe().transform(id, { data: 'id' } as any)
-    );
+    ).filter((id): id is string => id !== undefined);
     
     return this.catalogService.bulkDeleteUsers(validatedIds);
   }
