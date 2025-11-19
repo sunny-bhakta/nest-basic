@@ -78,6 +78,7 @@ This repository demonstrates comprehensive NestJS concepts including Guards, Mid
   - Logging middleware
   - Context management
   - Rate limiting implementation
+  - [Core Middleware Guide](./src/middleware/cors.usage.guide.md.md)
 
 - **[Lifecycle Middleware](./src/events/middleware/README.md)** - Advanced event integration
   - Request lifecycle tracking
