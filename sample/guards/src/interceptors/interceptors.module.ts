@@ -26,37 +26,86 @@ import { PerformanceInterceptor } from './performance.interceptor';
     // Individual interceptor instances (for injection in services)
     LoggingInterceptor,
     ResponseTransformInterceptor,
-    SecurityInterceptor,
-    CorsInterceptor,
-    PerformanceInterceptor,
+    {
+      provide: SecurityInterceptor,
+      useFactory: () => new SecurityInterceptor({
+        enableSecurityHeaders: true,
+        detectSuspiciousActivity: true,
+        maxFailedAttempts: 5,
+        blockDuration: 15,
+        sensitiveRoutes: ['/admin/', '/auth/', '/login', '/password', '/reset', '/api/admin/', '/api/auth/'],
+      }),
+    },
+    {
+      provide: CorsInterceptor,
+      useFactory: () => new CorsInterceptor({
+        allowedOrigins: ['http://localhost:3000', 'http://localhost:4200', 'https://*.yourdomain.com'],
+        allowedMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Request-ID'],
+        exposedHeaders: ['X-Request-ID', 'X-Response-Time'],
+        credentials: true,
+        maxAge: 86400,
+      }),
+    },
+    {
+      provide: PerformanceInterceptor,
+      useFactory: () => {
+        const interceptor = new PerformanceInterceptor();
+        interceptor.configure({
+          enableMetricsCollection: true,
+          enableSlowRequestLogging: true,
+          enableMemoryMonitoring: true,
+          enableCpuMonitoring: true,
+          timeoutMs: 30000,
+          alertThresholds: {
+            slow: 1000,
+            verySlow: 5000,
+            memory: 100,
+          },
+        });
+        return interceptor;
+      },
+    },
     // Factory providers for interceptors with configuration
     {
       provide: CacheInterceptor,
-      useFactory: () => new CacheInterceptor({
-        ttl: 300, // 5 minutes default TTL
-        keyGenerator: (req) => `${req.method}-${req.url}`,
-        excludeRoutes: ['/auth/', '/admin/'],
-      }),
+      useFactory: () => {
+        const interceptor = new CacheInterceptor();
+        interceptor.configure({
+          ttl: 300, // 5 minutes default TTL
+          keyGenerator: (req) => `${req.method}-${req.url}`,
+          excludeRoutes: ['/auth/', '/admin/'],
+        });
+        return interceptor;
+      },
     },
     {
       provide: TimeoutInterceptor,
-      useFactory: () => new TimeoutInterceptor({
-        timeout: 30000, // 30 seconds default timeout
-        routeTimeouts: {
-          '/upload/': 300000, // 5 minutes for uploads
-          '/report/': 120000, // 2 minutes for reports
-          '/search': 10000, // 10 seconds for search
-        },
-      }),
+      useFactory: () => {
+        const interceptor = new TimeoutInterceptor();
+        interceptor.configure({
+          timeout: 30000, // 30 seconds default timeout
+          routeTimeouts: {
+            '/upload/': 300000, // 5 minutes for uploads
+            '/report/': 120000, // 2 minutes for reports
+            '/search': 10000, // 10 seconds for search
+          },
+        });
+        return interceptor;
+      },
     },
     {
       provide: RateLimitInterceptor,
-      useFactory: () => new RateLimitInterceptor({
-        windowMs: 60000, // 1 minute
-        maxRequests: 100,
-        skipSuccessfulRequests: false,
-        keyGenerator: (req) => req.ip || 'unknown',
-      }),
+      useFactory: () => {
+        const interceptor = new RateLimitInterceptor();
+        interceptor.configure({
+          windowMs: 60000, // 1 minute
+          maxRequests: 100,
+          skipSuccessfulRequests: false,
+          keyGenerator: (req) => req.ip || 'unknown',
+        });
+        return interceptor;
+      },
     },
     
     // Global interceptors (order matters!)
@@ -102,18 +151,22 @@ import { PerformanceInterceptor } from './performance.interceptor';
     },
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new PerformanceInterceptor({
-        enableMetricsCollection: true,
-        enableSlowRequestLogging: true,
-        enableMemoryMonitoring: true,
-        enableCpuMonitoring: true,
-        timeoutMs: 30000, // 30 seconds
-        alertThresholds: {
-          slow: 1000, // 1 second
-          verySlow: 5000, // 5 seconds
-          memory: 100, // 100 MB
-        },
-      }),
+      useFactory: () => {
+        const interceptor = new PerformanceInterceptor();
+        interceptor.configure({
+          enableMetricsCollection: true,
+          enableSlowRequestLogging: true,
+          enableMemoryMonitoring: true,
+          enableCpuMonitoring: true,
+          timeoutMs: 30000, // 30 seconds
+          alertThresholds: {
+            slow: 1000, // 1 second
+            verySlow: 5000, // 5 seconds
+            memory: 100, // 100 MB
+          },
+        });
+        return interceptor;
+      },
     },
     {
       provide: APP_INTERCEPTOR,

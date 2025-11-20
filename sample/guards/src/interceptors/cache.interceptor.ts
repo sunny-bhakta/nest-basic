@@ -83,12 +83,21 @@ export class CacheInterceptor implements NestInterceptor {
   private readonly logger = new Logger(CacheInterceptor.name);
   private readonly cache = new MemoryCache();
 
-  constructor(private readonly options: {
+  private options: {
     ttl?: number; // seconds
     keyGenerator?: (request: Request) => string;
     shouldCache?: (request: Request, response: Response) => boolean;
     excludeRoutes?: string[];
-  } = {}) {}
+  } = {
+    ttl: 300,
+    excludeRoutes: ['/auth/', '/admin/'],
+    keyGenerator: (req) => `${req.method}-${req.url}`,
+  };
+
+  // Method to configure options after instantiation
+  configure(options: Partial<typeof this.options>): void {
+    this.options = { ...this.options, ...options };
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -229,10 +238,22 @@ export class CacheInterceptor implements NestInterceptor {
 export class TimeoutInterceptor implements NestInterceptor {
   private readonly logger = new Logger(TimeoutInterceptor.name);
 
-  constructor(private readonly options: {
+  private options: {
     timeout?: number; // milliseconds
     routeTimeouts?: Record<string, number>; // route-specific timeouts
-  } = {}) {}
+  } = {
+    timeout: 30000,
+    routeTimeouts: {
+      '/upload/': 300000,
+      '/report/': 120000,
+      '/search': 10000,
+    },
+  };
+
+  // Method to configure options after instantiation
+  configure(options: Partial<typeof this.options>): void {
+    this.options = { ...this.options, ...options };
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -308,12 +329,22 @@ export class RateLimitInterceptor implements NestInterceptor {
   private readonly logger = new Logger(RateLimitInterceptor.name);
   private readonly requestCounts = new Map<string, { count: number; resetTime: number }>();
 
-  constructor(private readonly options: {
+  private options: {
     maxRequests?: number;
     windowMs?: number; // time window in milliseconds
     keyGenerator?: (request: Request) => string;
     skipSuccessfulRequests?: boolean;
-  } = {}) {}
+  } = {
+    windowMs: 60000,
+    maxRequests: 100,
+    skipSuccessfulRequests: false,
+    keyGenerator: (req) => req.ip || 'unknown',
+  };
+
+  // Method to configure options after instantiation
+  configure(options: Partial<typeof this.options>): void {
+    this.options = { ...this.options, ...options };
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();

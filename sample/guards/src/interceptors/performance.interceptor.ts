@@ -35,7 +35,7 @@ export class PerformanceInterceptor implements NestInterceptor {
   private readonly slowRequestThreshold = 1000; // milliseconds
   private readonly verySlowRequestThreshold = 5000; // milliseconds
 
-  constructor(private readonly options: {
+  private options: {
     enableMetricsCollection?: boolean;
     enableSlowRequestLogging?: boolean;
     enableMemoryMonitoring?: boolean;
@@ -46,7 +46,23 @@ export class PerformanceInterceptor implements NestInterceptor {
       verySlow?: number;
       memory?: number; // MB
     };
-  } = {}) {}
+  } = {
+    enableMetricsCollection: true,
+    enableSlowRequestLogging: true,
+    enableMemoryMonitoring: true,
+    enableCpuMonitoring: true,
+    timeoutMs: 30000,
+    alertThresholds: {
+      slow: 1000,
+      verySlow: 5000,
+      memory: 100,
+    },
+  };
+
+  // Method to configure options after instantiation
+  configure(options: Partial<typeof this.options>): void {
+    this.options = { ...this.options, ...options };
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();

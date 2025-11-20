@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 
 /**
  * Base interface for all request lifecycle events

@@ -25,7 +25,13 @@ export class SecurityInterceptor implements NestInterceptor {
     maxFailedAttempts?: number;
     blockDuration?: number; // minutes
     sensitiveRoutes?: string[];
-  } = {}) {}
+  } = {
+    enableSecurityHeaders: true,
+    detectSuspiciousActivity: true,
+    maxFailedAttempts: 5,
+    blockDuration: 15,
+    sensitiveRoutes: ['/admin/', '/auth/', '/login', '/password', '/reset', '/api/admin/', '/api/auth/'],
+  }) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -263,7 +269,13 @@ export class CorsInterceptor implements NestInterceptor {
     exposedHeaders?: string[];
     credentials?: boolean;
     maxAge?: number;
-  } = {}) {}
+  } = {
+    allowedOrigins: ['http://localhost:3000', 'http://localhost:4200'],
+    allowedMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    credentials: true,
+    maxAge: 86400,
+  }) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();

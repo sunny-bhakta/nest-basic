@@ -6,6 +6,8 @@ import { MetricsEventListener } from './listeners/metrics-event.listener';
 import { SecurityEventListener } from './listeners/security-event.listener';
 import { LifecycleRequestMiddleware } from './middleware/lifecycle-request.middleware';
 import { LifecycleAuthzGuard } from './guards/lifecycle-authz.guard';
+import { InterceptorsModule } from '../interceptors/interceptors.module';
+// import { SecurityInterceptor } from '../interceptors/security.interceptor'; // REMOVED: Already handled by InterceptorsModule
 
 /**
  * Events module that provides comprehensive request lifecycle monitoring
@@ -22,6 +24,7 @@ import { LifecycleAuthzGuard } from './guards/lifecycle-authz.guard';
 @Global()
 @Module({
   imports: [
+    InterceptorsModule,
     EventEmitterModule.forRoot({
       // Set this to `true` to use wildcards
       wildcard: true,
@@ -51,6 +54,7 @@ import { LifecycleAuthzGuard } from './guards/lifecycle-authz.guard';
     // Enhanced middleware and guards
     LifecycleRequestMiddleware,
     LifecycleAuthzGuard,
+    // SecurityInterceptor - REMOVED: Already provided by InterceptorsModule
   ],
   exports: [
     // Export services for use in other modules

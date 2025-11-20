@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, Headers, Query, UsePipes, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Headers, Query, UsePipes, UseInterceptors, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiQuery, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SecureEndpoint } from '../security/decorators/secure.decorator';
 import { SkipAuth } from '../security/decorators/skip-auth.decorator';
 import { AccessLevel } from '../enums/access-level.enum';
 import { CatalogService } from './catalog.service';
-import { CacheInterceptor, PerformanceInterceptor, LoggingInterceptor } from '../interceptors/';
+// import { CacheInterceptor, PerformanceInterceptor, LoggingInterceptor } from '../interceptors/';
 // import { CacheInterceptor } from '../interceptors/cache.interceptor';
 // import { PerformanceInterceptor } from '../interceptors/logging.interceptor';
 // import { LoggingInterceptor } from '../interceptors/logging.interceptor';
@@ -22,12 +22,23 @@ import {
   AccessLevelValidationPipe 
 } from '../pipes';
 import { SearchDto, CreateUserDto, UpdateUserDto, PaginatedResponseDto } from '../dto/user.dto';
+import { CacheInterceptor } from '../interceptors/cache.interceptor';
+import { PerformanceInterceptor } from 'src/interceptors/performance.interceptor';
+import { LoggingInterceptor } from 'src/interceptors/logging.interceptor';
 
 @ApiTags('Catalog')
 @Controller('catalog')
 @ApiBearerAuth()
 export class CatalogController {
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(
+    private readonly catalogService: CatalogService,
+    @Inject(CacheInterceptor)
+    private readonly cacheInterceptor: CacheInterceptor,
+    @Inject(PerformanceInterceptor)
+    private readonly performanceInterceptor: PerformanceInterceptor,
+    @Inject(LoggingInterceptor)
+    private readonly loggingInterceptor: LoggingInterceptor,
+  ) {}
 
   @Get()
   @SkipAuth()
