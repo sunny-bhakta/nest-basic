@@ -8,7 +8,7 @@ import { RequestContextMiddleware } from './middleware/request-context.middlewar
 import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { LifecycleRequestMiddleware } from './events/middleware/lifecycle-request.middleware';
-import { ControllersModule } from './controllers/controllers.module';
+import { ApisModule } from './apis/apis.module';
 
 @Module({
   imports: [
@@ -25,9 +25,9 @@ import { ControllersModule } from './controllers/controllers.module';
         validationFailuresPerHour: 100,
       },
     }),
-    // ControllersModule,
-    // CatalogModule,
-    // InterceptorsModule, // Add interceptors module for comprehensive request/response processing
+    ApisModule,
+    CatalogModule,
+    InterceptorsModule, // Add interceptors module for comprehensive request/response processing
   ],
   controllers: [],
 })
